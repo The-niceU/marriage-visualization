@@ -268,6 +268,19 @@ const initLineChart = async () => {
 };
 </script>
 
+<style scoped>
+header {
+  text-align: center;
+  margin: 20px 0;
+  animation: jump 1s ease-in-out;
+  animation-iteration-count: infinite; 
+}
+@keyframes jump {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+</style>
 <template>
   <div>
     <header>
