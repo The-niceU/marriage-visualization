@@ -2,10 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { Chart } from "@antv/g2";
 import { DataSet } from '@antv/data-set';
-<<<<<<< HEAD
-import * as echarts from 'echarts';
-=======
->>>>>>> cf9b8f26705edf91579650bea50a15c66659291f
 import Plotly from 'plotly.js-dist';
 
 // 这里可以保留你的 CSV 数据处理逻辑
