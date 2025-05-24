@@ -268,6 +268,8 @@ const initLineChart = async () => {
 };
 </script>
 
+<<<<<<< HEAD
+=======
 <style scoped>
 header {
   text-align: center;
@@ -281,6 +283,7 @@ header {
   100% { transform: translateY(0); }
 }
 </style>
+>>>>>>> cf9b8f26705edf91579650bea50a15c66659291f
 <template>
   <div>
     <header>
