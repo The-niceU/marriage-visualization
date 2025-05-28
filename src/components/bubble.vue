@@ -1,6 +1,8 @@
 <template>
-  <div ref="chartRef" style="width: 100%; height: 600px;"></div>
+  <div ref="chartRef" style="width: 100%; height: 600px;cursor:pointer "></div>
 </template>
+
+
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -150,3 +152,4 @@ onMounted(async () => {
   chart.setOption(option)
 })
 </script>
+
