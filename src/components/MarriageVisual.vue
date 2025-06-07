@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted,watch } from 'vue';
 import { Chart } from "@antv/g2";
 import { DataSet } from '@antv/data-set';
 import Plotly from 'plotly.js-dist';
@@ -9,7 +9,39 @@ const props = defineProps({
   data_path: String,
 });
 
+const currentPage = ref(0);
+const totalPages = 4; // 总共5个卡片
 
+// 页面导航函数
+const nextPage = () => {
+  if (currentPage.value < totalPages - 1) {
+    currentPage.value++;
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 0) {
+    currentPage.value--;
+  }
+};
+
+const goToPage = (page) => {
+  currentPage.value = page;
+};
+// 监听页面变化，确保图表正确渲染
+watch(currentPage, (newPage) => {
+  if (newPage === 1) {
+    // 当切换到第二页时初始化线图
+    setTimeout(() => {
+      initLineChart();
+    }, 100);
+  } else if (newPage === 2 || newPage === 3) {
+    // 当切换到第三或第四页时初始化Plotly图表
+    setTimeout(() => {
+      renderPlotlyCharts();
+    }, 100);
+  }
+});
 
 // 婚姻率数据
 const marriage_data = [
@@ -101,9 +133,13 @@ async function csvToJson(path) {
 }
 
 // 图表初始化函数
-onMounted(async () => {
-  renderPlotlyCharts();
-  await initLineChart();
+onMounted(() => {
+  // 初始时如果在图表页面就渲染图表
+  if (currentPage.value === 1) {
+    initLineChart();
+  } else if (currentPage.value === 2 || currentPage.value === 3) {
+    renderPlotlyCharts();
+  }
 });
 
 
@@ -174,8 +210,7 @@ const renderPlotlyCharts = () => {
   };
 
   // 渲染各个图表
-  window.Plotly.newPlot('chart1', [marriage_trace], layout);
-  window.Plotly.newPlot('chart2', [divorce_trace], layout);
+
   window.Plotly.newPlot('chart3', [bar_trace, bar_trace2], {
     title: '不同国家结婚率与离婚率对比',
     barmode: 'group',
@@ -282,49 +317,75 @@ header {
 }
 </style>
 <template>
-  <div>
+  <div class="marriage-visual">
     <header>
       婚姻数据可视化
     </header>
 
-    <div class="container">
-      <!-- 页面简介 -->
-      <div class="info-box">
-        <h2>关于本数据</h2>
-        <p>此页面展示了2000年至2009年期间婚姻率和离婚率的年度变化趋势，以及不同国家之间的结婚率与离婚率对比、中国不同地区的婚姻数据热力图和婚姻诉讼数据的分析。</p>
-        <p>通过本页面，您可以深入了解不同地区与国家的婚姻情况，并进行相关的趋势分析。</p>
+    <!-- 卡片容器 -->
+    <div class="card-container">
+      <!-- 当前卡片 -->
+      <transition name="slide">
+        <div class="card" :key="currentPage">
+          <!-- 卡片1: 关于本数据 -->
+          <div v-if="currentPage === 0" class="info-card">
+            <h2>关于本数据</h2>
+            <div class="card-icon">📊</div>
+            <p>此页面展示了2000年至2009年期间婚姻率和离婚率的年度变化趋势，以及不同国家之间的结婚率与离婚率对比、中国不同地区的婚姻数据热力图和婚姻诉讼数据的分析。</p>
+            <p>通过本页面，您可以深入了解不同地区与国家的婚姻情况，并进行相关的趋势分析。</p>
+          </div>
+
+          <!-- 卡片2: 中国历年婚姻登记数量 -->
+          <div v-if="currentPage === 1" class="chart-card">
+            <h2>中国历年婚姻登记数量</h2>
+            <div class="card-icon">📈</div>
+            <div id="chartDiv" class="chart-container"></div>
+          </div>
+
+          <!-- 卡片3: 不同国家结婚率与离婚率对比 -->
+          <div v-if="currentPage === 2" class="chart-card">
+            <h2>不同国家结婚率与离婚率对比</h2>
+            <div class="card-icon">🌎</div>
+            <div id="chart3" class="chart-container"></div>
+          </div>
+
+          
+
+          <!-- 卡片5: 数据分析 -->
+          <div v-if="currentPage === 3"  class="info-card analysis-card">
+            <h2>数据分析结论</h2>
+            <div class="card-icon">📝</div>
+            <div class="analysis-points">
+              <p>婚姻率和离婚率在2000年至2009年之间呈现一定的波动。</p>
+              <p><strong>婚姻率：</strong>2001年达到最高点7.3，而2009年为最低点6.7。</p>
+              <p><strong>离婚率：</strong>2008年是离婚率的高峰期，达到了3.1。</p>
+              <p><strong>平均婚姻率：</strong>7.0</p>
+              <p><strong>平均离婚率：</strong>2.9</p>
+              <p>通过分析不同国家的结婚率和离婚率，我们可以更好地了解不同地区的婚姻状况。</p>
+            </div>
+          </div>
+        </div>
+      </transition>
+
+      <!-- 页面指示器 -->
+      <div class="pagination">
+        <div class="dots">
+          <span 
+            v-for="page in totalPages" 
+            :key="page" 
+            :class="['dot', { active: currentPage === page - 1 }]"
+            @click="goToPage(page - 1)">
+          </span>
+        </div>
+        <div class="nav-buttons">
+          <button class="nav-btn" @click="prevPage" :disabled="currentPage === 0">
+            <span class="arrow">←</span> 上一页
+          </button>
+          <button class="nav-btn" @click="nextPage" :disabled="currentPage === totalPages - 1">
+            下一页 <span class="arrow">→</span>
+          </button>
+        </div>
       </div>
-      <div class="section-title">中国历年婚姻登记数量</div>
-      <div id="chartDiv"></div>
-
-      <!-- 第一部分：结婚率图表 -->
-      <div class="section-title">不同年份的结婚率</div>
-      <div id="chart1"></div>
-
-      <!-- 第二部分：离婚率图表 -->
-      <div class="section-title">不同年份的离婚率</div>
-      <div id="chart2"></div>
-
-      <!-- 第三部分：不同国家的结婚率与离婚率对比 -->
-      <div class="section-title">不同国家结婚率与离婚率对比</div>
-      <div id="chart3"></div>
-
-      <!-- 第四部分：中国不同地区婚姻数据热力图 -->
-      <div class="section-title">中国不同地区婚姻数据热力图</div>
-      <div id="chart4"></div>
-
-      <!-- 数据分析 -->
-      <div class="info-box">
-        <h2>数据分析</h2>
-        <p>婚姻率和离婚率在2000年至2009年之间呈现一定的波动。</p>
-        <p><strong>婚姻率：</strong>2001年达到最高点7.3，而2009年为最低点6.7。</p>
-        <p><strong>离婚率：</strong>2008年是离婚率的高峰期，达到了3.1。</p>
-        <p><strong>平均婚姻率：</strong>7.0</p>
-        <p><strong>平均离婚率：</strong>2.9</p>
-        <p>通过分析不同国家的结婚率和离婚率，我们可以更好地了解不同地区的婚姻状况。</p>
-      </div>
-      
-      
     </div>
 
     <div class="footer">
@@ -332,67 +393,187 @@ header {
     </div>
   </div>
 </template>
-
 <style scoped>
-body {
+.marriage-visual {
   font-family: 'Roboto', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f7f6;
+  background-color: #f8f9fa;
   color: #333;
-  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
   background-color: #3e8e41;
   color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 2em;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  position: relative;
+}
+
+.card {
+  width: 90%;
+  max-width: 1000px;
+  min-height: 500px;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   padding: 30px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card, .chart-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  font-size: 2.5em;
-  border-bottom: 5px solid #2c6a32;
+  height: 100%;
 }
 
-h1 {
-  margin: 0;
+.card-icon {
+  font-size: 3em;
+  margin: 20px 0;
+  color: #3e8e41;
 }
 
-.container {
-  width: 85%;
-  margin: 40px auto;
-  text-align: center;
-}
-
-.section-title {
+.info-card h2, .chart-card h2 {
   color: #3e8e41;
   font-size: 2em;
-  margin-top: 30px;
-  font-weight: 600;
-}
-
-.info-box {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-  margin-top: 30px;
-}
-
-.info-box h2 {
   margin-top: 0;
-  color: #3e8e41;
-  font-size: 1.6em;
+  margin-bottom: 20px;
+  position: relative;
 }
 
-.info-box p {
+.info-card h2::after, .chart-card h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: #3e8e41;
+}
+
+.info-card p {
+  font-size: 1.2em;
+  line-height: 1.6;
   color: #555;
-  font-size: 1.1em;
+  max-width: 800px;
+  margin: 10px auto;
 }
 
-#chart1, #chart2, #chart3, #chart4, #chartDiv {
-  margin: 30px 0;
-  height: 500px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.chart-container {
+  width: 100%;
+  height: 400px;
+  margin-top: 20px;
+}
+
+.analysis-card .analysis-points {
+  text-align: left;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.analysis-card .analysis-points p {
+  margin: 15px 0;
+}
+
+/* 分页控制 */
+.pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ddd;
+  margin: 0 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background-color: #3e8e41;
+  transform: scale(1.2);
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 30px;
+  background-color: #3e8e41;
+  color: white;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nav-btn:hover {
+  background-color: #2c6a32;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.arrow {
+  font-size: 1.2em;
+}
+
+/* 页面切换动画 */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.5s ease;
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(50px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-50px);
 }
 
 .footer {
@@ -401,17 +582,26 @@ h1 {
   padding: 15px;
   text-align: center;
   font-size: 1em;
-  margin-top: 50px;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .container {
-    width: 90%;
+  .card {
+    width: 95%;
+    padding: 20px;
+    min-height: 400px;
   }
-
-  #chart1, #chart2, #chart3, #chart4, #chartDiv {
-    height: 350px;
+  
+  .chart-container {
+    height: 300px;
+  }
+  
+  .info-card h2, .chart-card h2 {
+    font-size: 1.6em;
+  }
+  
+  .info-card p {
+    font-size: 1em;
   }
 }
 </style>

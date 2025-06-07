@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div ref="chartRef" style="width: 100%; height: 600px;"></div>
+    <div ref="chartRef" style="width: 50vw; height: 600px;"></div>
     <div v-if="selectedAreas.length > 0" class="comparison-panel">
       <h3>已选择区域比较</h3>
       <div class="selected-areas">
@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch,onUnmounted } from 'vue';
 import * as echarts from 'echarts';
 import Papa from 'papaparse';
 
@@ -112,6 +112,7 @@ onMounted(async () => {
   echarts.registerMap('china', geoJson);
 
   myChart = echarts.init(chartRef.value);
+  window.mapChartInstance = myChart;
   const option = {
     title: {
       text: '各省15岁及以上结婚人口分布',
@@ -204,6 +205,17 @@ onMounted(async () => {
       comparisonChart.resize();
     }
   });
+
+  
+  
+  // 暴露图表实例供外部访问
+  
+});
+
+onUnmounted(() => {
+  if (window.mapChartInstance === myChart) {
+    window.mapChartInstance = null;
+  }
 });
 </script>
 
