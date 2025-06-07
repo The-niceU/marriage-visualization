@@ -45,14 +45,14 @@ onMounted(async () => {
     baseOption: {
       timeline: {
         axisType: 'category',
-        orient: 'vertical',
+        orient: 'horizontal', // 横向，放底部
         autoPlay: true,
-        inverse: true,
+        inverse: false,
         playInterval: 1200,
-        right: 0,
-        top: 20,
-        bottom: 20,
-        width: 55,
+        bottom: 0,           // 距底部0
+        left: 0,            // 可根据实际调整
+        right: 110,          // 保持和 grid.right 一致
+        height: 55,          // timeline高度
         symbol: 'none',
         checkpointStyle: { borderWidth: 2 },
         controlStyle: { showNextBtn: false, showPrevBtn: false },
@@ -99,13 +99,16 @@ onMounted(async () => {
         nameLocation: 'middle',
         nameTextStyle: { fontSize: 18 },
         splitLine: { show: false },
-        axisLabel: { formatter: '{value} 元' }
+        axisLabel: { formatter: '{value} 元' },
+        axisLine: { lineStyle: { color: '#fff' } }
       },
       yAxis: {
         type: 'value',
         name: '粗离婚率',
         nameTextStyle: { fontSize: 18 },
-        splitLine: { show: false }
+        splitLine: { show: false },
+        axisLabel: { formatter: '{value} %' },
+        axisLine: { lineStyle: { color: '#fff' } }
       },
       visualMap: [
         {
@@ -122,7 +125,10 @@ onMounted(async () => {
               '#f7b6d2', '#dbdb8d', '#9edae5', '#393b79', '#637939',
               '#8c6d31', '#843c39'
             ]
-          }
+          },
+          textStyle: { color: '#fff' },
+          orient: 'vertical',
+          right: 0,
         }
       ],
       series: [
