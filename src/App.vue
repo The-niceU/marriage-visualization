@@ -116,7 +116,7 @@ const animateDataTransition = (pageNum) => {
         break;
       case 1:
         // 中国地图3D升起效果
-        elevateMap();
+        
         break;
       case 2:
         // 趋势线转化为3D曲面
@@ -1117,7 +1117,7 @@ onMounted(() => {
       <div class="nav-system">
         <div class="nav-orbit">
           <button 
-            v-for="(page, index) in ['宇宙概览', '全球地图', '时间长河', '关系网络', '数据矩阵']" 
+            v-for="(page, index) in ['宇宙概览', '中国地图', '时间长河', '关系网络', '数据矩阵']" 
             :key="index"
             :class="['nav-planet', { active: activePage === index }]"
             @click="changePage(index)"
