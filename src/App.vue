@@ -104,30 +104,34 @@ const enterDataverse = () => {
 };
 
 // 3D数据转场动画
+// 3D数据转场动画
 const animateDataTransition = (pageNum) => {
-  // 基于页码的3D效果
-  switch(pageNum) {
-    case 0:
-      // 首页粒子爆炸效果
-      explodeParticles();
-      break;
-    case 1:
-      // 中国地图3D升起效果
-      elevateMap();
-      break;
-    case 2:
-      // 趋势线转化为3D曲面
-      convertTo3DSurface();
-      break;
-    case 3:
-      // 关系图谱展开
-      expandRelationships();
-      break;
-    case 4:
-      // 综合数据漩涡效果
-      createDataVortex();
-      break;
-  }
+  // 先等待DOM更新完成
+  setTimeout(() => {
+    // 基于页码的3D效果
+    switch(pageNum) {
+      case 0:
+        // 首页粒子爆炸效果
+        explodeParticles();
+        break;
+      case 1:
+        // 中国地图3D升起效果
+        elevateMap();
+        break;
+      case 2:
+        // 趋势线转化为3D曲面
+        convertTo3DSurface();
+        break;
+      case 3:
+        // 关系图谱展开
+        expandRelationships();
+        break;
+      case 4:
+        // 综合数据漩涡效果
+        createDataVortex();
+        break;
+    }
+  }, 500); // 给DOM更新足够的时间
 };
 
 // 初始化3D场景
@@ -451,8 +455,610 @@ const explodeParticles = () => {
       }
     });
   }
+  console.log('0 finished explodeParticles');
 };
 
+// 中国地图3D升起效果
+// 中国地图3D升起效果
+const elevateMap = () => {
+  console.log('Elevating map with 3D effect...');
+  
+  // 获取地图容器
+  const mapContainer = document.querySelector('.globe-section .hologram-content');
+  if (!mapContainer) {
+    console.warn('未找到地图容器');
+    return;
+  }
+  
+  // 添加3D视觉效果
+  mapContainer.style.perspective = '1000px';
+  mapContainer.style.transformStyle = 'preserve-3d';
+  
+  // 找到echarts容器
+  const echartsContainer = mapContainer.querySelector('[style*="width: 50vw"]');
+  if (!echartsContainer) {
+    console.warn('未找到echarts容器');
+    return;
+  }
+  
+  // 应用3D效果到echarts容器
+  gsap.fromTo(echartsContainer,
+    { 
+      transform: 'rotateX(0deg) rotateY(0deg) scale(0.9)',
+      boxShadow: '0 0 0 rgba(0, 240, 255, 0)'
+    },
+    { 
+      transform: 'rotateX(15deg) rotateY(-15deg) scale(1)',
+      boxShadow: '0 20px 50px rgba(0, 240, 255, 0.5)',
+      duration: 2,
+      ease: "power3.out"
+    }
+  );
+  
+  // 获取ChinaMap组件的Vue实例，以便访问其内部echarts实例
+  setTimeout(() => {
+    // 寻找地图组件可能导出的chart实例
+    const chartInstance = window.mapChartInstance; // 假设组件将chart实例暴露到window
+    
+    if (chartInstance) {
+      // 使用echarts API调整地图的视觉效果
+      const option = chartInstance.getOption();
+      
+      // 增强地图区域
+      if (option.series && option.series[0]) {
+        // 修改地图样式，增加高亮和投影效果
+        option.series[0].itemStyle = {
+          ...option.series[0].itemStyle,
+          shadowBlur: 10,
+          shadowColor: 'rgba(0, 240, 255, 0.5)',
+          borderWidth: 2
+        };
+        
+        // 添加涟漪效果
+        option.series.push({
+          type: 'effectScatter',
+          coordinateSystem: 'geo',
+          data: option.series[0].data,
+          symbolSize: 5,
+          showEffectOn: 'render',
+          rippleEffect: {
+            period: 4,
+            scale: 4,
+            brushType: 'stroke'
+          },
+          itemStyle: {
+            color: 'rgba(0, 240, 255, 0.8)'
+          },
+          zlevel: 1
+        });
+        
+        chartInstance.setOption(option);
+      }
+    }
+    
+    // 添加额外的光效装饰元素
+    const glowEffect = document.createElement('div');
+    glowEffect.className = 'map-3d-glow';
+    glowEffect.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(0, 240, 255, 0.1) 0%, transparent 70%);
+      z-index: 1;
+    `;
+    mapContainer.appendChild(glowEffect);
+    
+    // 添加浮动数据点效果
+    const dataPoints = 8;
+    for (let i = 0; i < dataPoints; i++) {
+      const dataPoint = document.createElement('div');
+      dataPoint.className = 'floating-data-point';
+      dataPoint.style.cssText = `
+        position: absolute;
+        width: ${Math.random() * 10 + 5}px;
+        height: ${Math.random() * 10 + 5}px;
+        background: rgba(0, 240, 255, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+        top: ${Math.random() * 100}%;
+        left: ${Math.random() * 100}%;
+        pointer-events: none;
+        z-index: 2;
+      `;
+      mapContainer.appendChild(dataPoint);
+      
+      // 为数据点添加动画
+      gsap.to(dataPoint, {
+        y: `-=${Math.random() * 100 + 50}`,
+        x: `+=${Math.random() * 40 - 20}`,
+        opacity: 0,
+        duration: Math.random() * 3 + 2,
+        delay: Math.random() * 2,
+        ease: "power1.out",
+        onComplete: () => dataPoint.remove()
+      });
+    }
+  }, 500); // 给echarts足够的时间完成渲染
+};
+// 趋势线转化为3D曲面
+// 趋势线转化为3D曲面
+const convertTo3DSurface = () => {
+  console.log('Converting charts to 3D surface...');
+  
+  // 获取图表容器
+  const timeFlowContainers = document.querySelectorAll('.time-flow .hologram-content');
+  if (!timeFlowContainers.length) {
+    console.warn('未找到时间流图表容器');
+    return;
+  }
+  
+  timeFlowContainers.forEach((container, containerIndex) => {
+    // 给容器添加3D效果
+    gsap.to(container, {
+      perspective: '1000px',
+      transformStyle: 'preserve-3d',
+      duration: 0.1
+    });
+    
+    // 找到echarts容器
+    const chartDiv = container.querySelector('[style*="width: 40vw"]');
+    if (!chartDiv) {
+      console.warn('未找到echarts容器');
+      return;
+    }
+    
+    // 应用3D变换效果到图表容器
+    gsap.fromTo(chartDiv,
+      { 
+        transform: 'rotateX(0deg) rotateY(0deg) scale(0.95)',
+        boxShadow: '0 0 0 rgba(0, 240, 255, 0)'
+      },
+      { 
+        transform: 'rotateX(12deg) rotateY(-5deg) scale(1)',
+        boxShadow: '0 20px 50px rgba(0, 240, 255, 0.5)',
+        duration: 1.5,
+        ease: "back.out(1.2)"
+      }
+    );
+    
+    // 获取ECharts实例并修改其选项
+    setTimeout(() => {
+      // 尝试获取图表实例
+      const chartInstance = echarts.getInstanceByDom(chartDiv);
+      
+      if (chartInstance) {
+        // 获取当前配置
+        const option = chartInstance.getOption();
+        
+        // 增强图表视觉效果
+        if (option.series && option.series.length) {
+          // 修改线条样式
+          option.series.forEach(series => {
+            series.lineStyle = {
+              ...series.lineStyle,
+              width: 4,
+              shadowBlur: 15,
+              shadowColor: series.name === '结婚率' ? 'rgba(0, 240, 255, 0.8)' : 'rgba(255, 0, 255, 0.8)',
+              shadowOffsetY: 8
+            };
+            
+            // 修改点样式
+            series.itemStyle = {
+              ...series.itemStyle,
+              shadowBlur: 10,
+              shadowColor: series.name === '结婚率' ? 'rgba(0, 240, 255, 0.8)' : 'rgba(255, 0, 255, 0.8)',
+              borderWidth: 3
+            };
+            
+            // 添加区域填充
+            series.areaStyle = {
+              ...series.areaStyle,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: series.name === '结婚率' ? 'rgba(0, 240, 255, 0.5)' : 'rgba(255, 0, 255, 0.5)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgba(0, 0, 0, 0)'
+                }
+              ]),
+              shadowBlur: 20,
+              shadowColor: series.name === '结婚率' ? 'rgba(0, 240, 255, 0.5)' : 'rgba(255, 0, 255, 0.5)',
+              opacity: 0.5
+            };
+          });
+        }
+        
+        // 应用修改后的配置
+        chartInstance.setOption(option);
+      }
+      
+      // 添加额外的光效装饰元素
+      const glowEffect = document.createElement('div');
+      glowEffect.className = 'chart-3d-glow';
+      glowEffect.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        background: radial-gradient(ellipse at center, 
+          rgba(0, 240, 255, 0.1) 0%, 
+          rgba(255, 0, 255, 0.05) 50%, 
+          transparent 70%);
+        z-index: 1;
+        border-radius: 8px;
+        opacity: 0;
+      `;
+      container.appendChild(glowEffect);
+      
+      // 添加光效动画
+      gsap.to(glowEffect, {
+        opacity: 0.7,
+        duration: 1,
+        delay: 0.5
+      });
+      
+      // 添加浮动数据点效果
+      for (let i = 0; i < 12; i++) {
+        const dataPoint = document.createElement('div');
+        dataPoint.className = 'floating-data-point';
+        dataPoint.style.cssText = `
+          position: absolute;
+          width: ${Math.random() * 6 + 3}px;
+          height: ${Math.random() * 6 + 3}px;
+          background: ${Math.random() > 0.5 ? 'rgba(0, 240, 255, 0.8)' : 'rgba(255, 0, 255, 0.8)'};
+          border-radius: 50%;
+          box-shadow: 0 0 10px ${Math.random() > 0.5 ? 'rgba(0, 240, 255, 0.8)' : 'rgba(255, 0, 255, 0.8)'};
+          top: ${Math.random() * 80 + 10}%;
+          left: ${Math.random() * 80 + 10}%;
+          pointer-events: none;
+          z-index: 2;
+          opacity: 0;
+        `;
+        container.appendChild(dataPoint);
+        
+        // 为数据点添加动画
+        gsap.to(dataPoint, {
+          y: `-=${Math.random() * 100 + 30}`,
+          x: `${Math.random() > 0.5 ? '+' : '-'}=${Math.random() * 30}`,
+          opacity: [0, 0.8, 0],
+          duration: Math.random() * 4 + 3,
+          delay: Math.random() * 2,
+          ease: "power1.out",
+          onComplete: () => dataPoint.remove()
+        });
+      }
+    }, 500); // 给echarts足够的时间完成渲染
+  });
+  
+  // 添加必要的CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes chart-glow {
+      0% { opacity: 0.3; transform: scale(0.98); }
+      100% { opacity: 0.7; transform: scale(1.02); }
+    }
+    
+    .chart-3d-glow {
+      animation: chart-glow 3s infinite alternate;
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+// 关系图谱展开效果
+const expandRelationships = () => {
+  const networkContainers = document.querySelectorAll('.network-section .hologram-content');
+  if (!networkContainers.length) return;
+  
+  networkContainers.forEach((container) => {
+    // 获取节点和连线
+    const nodes = container.querySelectorAll('circle, rect, g');
+    const links = container.querySelectorAll('path:not(.node)');
+    
+    // 设置3D环境
+    gsap.to(container, {
+      perspective: '1200px',
+      transformStyle: 'preserve-3d',
+      duration: 0.1
+    });
+    
+    // 让节点从中心爆发出来
+    nodes.forEach((node, index) => {
+      // 保存原始位置
+      const originalTransform = node.getAttribute('transform') || '';
+      
+      // 先缩小到中心点
+      gsap.set(node, {
+        transform: 'scale(0.1) translateZ(0px)',
+        opacity: 0
+      });
+      
+      // 然后爆发出来
+      gsap.to(node, {
+        transform: `${originalTransform} scale(1) translateZ(${Math.random() * 30 + 10}px)`,
+        opacity: 1,
+        duration: 1.2,
+        delay: index * 0.02,
+        ease: "back.out(1.7)"
+      });
+      
+      // 添加悬浮效果
+      node.addEventListener('mouseenter', () => {
+        gsap.to(node, {
+          transform: `${originalTransform} scale(1.2) translateZ(50px)`,
+          filter: 'drop-shadow(0 0 10px var(--accent-color))',
+          duration: 0.3
+        });
+      });
+      
+      node.addEventListener('mouseleave', () => {
+        gsap.to(node, {
+          transform: `${originalTransform} scale(1) translateZ(${Math.random() * 30 + 10}px)`,
+          filter: 'none',
+          duration: 0.3
+        });
+      });
+    });
+    
+    // 连线动画
+    links.forEach((link, index) => {
+      const pathLength = link.getTotalLength ? link.getTotalLength() : 500;
+      
+      // 设置初始状态
+      gsap.set(link, {
+        strokeDasharray: pathLength,
+        strokeDashoffset: pathLength,
+        opacity: 0
+      });
+      
+      // 线条绘制动画
+      gsap.to(link, {
+        strokeDashoffset: 0,
+        opacity: 0.8,
+        duration: 1.5,
+        delay: 0.5 + index * 0.01,
+        ease: "power3.out"
+      });
+      
+      // 添加光流效果
+      gsap.to(link, {
+        filter: 'drop-shadow(0 0 3px var(--primary-color))',
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    });
+    
+    // 整体图表的3D效果
+    gsap.to(container, {
+      rotationY: 5,
+      rotationX: -3,
+      duration: 3,
+      ease: "power1.inOut"
+    });
+  });
+};
+
+// 综合数据漩涡效果
+// 综合数据漩涡效果
+const createDataVortex = () => {
+  console.log('Creating data vortex effect...');
+  
+  // 给容器添加初始化动画效果的延迟，确保图表已渲染
+  setTimeout(() => {
+    const matrixContainer = document.querySelector('.matrix-section .hologram-content');
+    if (!matrixContainer) {
+      console.warn('未找到矩阵容器');
+      return;
+    }
+    
+    // 设置3D环境
+    gsap.to(matrixContainer, {
+      perspective: '1500px',
+      transformStyle: 'preserve-3d',
+      duration: 0.1
+    });
+    
+    // 创建装饰性粒子代替直接操作图表元素
+    for (let i = 0; i < 100; i++) {
+      createDecorativeParticle(matrixContainer, i);
+    }
+    
+    // 为图表容器添加 3D 效果
+    const chartContainer = matrixContainer.querySelector('.marriage-visual');
+    if (chartContainer) {
+      // 应用整体旋转动画
+      gsap.fromTo(chartContainer, 
+        { rotateX: 0, rotateY: 0, scale: 0.9, opacity: 0.7 },
+        { 
+          rotateX: "10deg", 
+          rotateY: "15deg", 
+          scale: 1,
+          opacity: 1,
+          duration: 2,
+          ease: "power3.out"
+        }
+      );
+      
+      // 添加轻微浮动动画
+      gsap.to(chartContainer, {
+        rotateY: "+=5",
+        rotateX: "-=3",
+        y: "-=10",
+        duration: 4,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    }
+    
+    // 创建光线特效
+    const lightBeam = document.createElement('div');
+    lightBeam.className = 'matrix-light-beam';
+    lightBeam.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      box-shadow: 0 0 100px 50px var(--primary-color);
+      opacity: 0;
+      z-index: -1;
+    `;
+    matrixContainer.appendChild(lightBeam);
+    
+    // 光线脉动动画
+    gsap.to(lightBeam, {
+      opacity: 0.7,
+      width: '20px',
+      height: '20px',
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+    
+    // 添加漩涡背景效果
+    const vortexBackground = document.createElement('div');
+    vortexBackground.className = 'vortex-background';
+    vortexBackground.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(ellipse at center, 
+          rgba(0,0,0,0) 30%, 
+          rgba(0, 240, 255, 0.05) 60%, 
+          rgba(0, 240, 255, 0.1) 100%);
+      z-index: -1;
+      pointer-events: none;
+      border-radius: var(--border-radius);
+    `;
+    matrixContainer.appendChild(vortexBackground);
+    
+    // 创建旋转光环
+    createRotatingRings(matrixContainer);
+  }, 800); // 给足够的时间让图表渲染
+};
+
+// 创建装饰性粒子
+const createDecorativeParticle = (container, index) => {
+  const particle = document.createElement('div');
+  
+  // 随机位置和大小
+  const size = Math.random() * 6 + 3;
+  const centerX = container.clientWidth / 2;
+  const centerY = container.clientHeight / 2;
+  const angle = Math.random() * Math.PI * 2;
+  const radius = Math.random() * (container.clientWidth / 3) + 50;
+  const x = centerX + Math.cos(angle) * radius;
+  const y = centerY + Math.sin(angle) * radius;
+  
+  // 设置粒子样式
+  particle.className = 'vortex-particle';
+  particle.style.cssText = `
+    position: absolute;
+    width: ${size}px;
+    height: ${size}px;
+    left: ${x}px;
+    top: ${y}px;
+    background: ${Math.random() > 0.5 ? 'var(--primary-color)' : 'var(--secondary-color)'};
+    border-radius: 50%;
+    box-shadow: 0 0 ${size * 2}px ${Math.random() > 0.5 ? 'var(--primary-color)' : 'var(--secondary-color)'};
+    opacity: 0;
+    z-index: 2;
+    pointer-events: none;
+  `;
+  
+  container.appendChild(particle);
+  
+  // 计算漩涡参数
+  const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+  const delay = distance / 300;
+  const duration = Math.random() * 3 + 3;
+  
+  // 粒子漩涡动画
+  gsap.to(particle, {
+    opacity: [0, 0.8, 0],
+    scale: [0, 1, 0],
+    rotation: Math.random() * 360,
+    duration: duration,
+    delay: delay,
+    ease: "power1.inOut",
+    repeat: -1,
+    onRepeat: () => {
+      // 更新粒子位置，创造漩涡效果
+      const newAngle = angle + (Math.random() * 0.5);
+      const newRadius = radius * (Math.random() * 0.2 + 0.9);
+      const newX = centerX + Math.cos(newAngle) * newRadius;
+      const newY = centerY + Math.sin(newAngle) * newRadius;
+      
+      gsap.set(particle, {
+        left: newX,
+        top: newY
+      });
+    }
+  });
+};
+
+// 创建旋转光环
+const createRotatingRings = (container) => {
+  const ringsCount = 3;
+  
+  for (let i = 0; i < ringsCount; i++) {
+    const ring = document.createElement('div');
+    const size = (i + 1) * 100 + 100;
+    
+    ring.className = 'vortex-ring';
+    ring.style.cssText = `
+      position: absolute;
+      width: ${size}px;
+      height: ${size}px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 2px solid ${i % 2 ? 'var(--primary-color)' : 'var(--secondary-color)'};
+      opacity: 0.3;
+      box-shadow: 0 0 20px ${i % 2 ? 'var(--primary-color)' : 'var(--secondary-color)'};
+      z-index: -1;
+      pointer-events: none;
+    `;
+    
+    container.appendChild(ring);
+    
+    // 光环旋转动画
+    gsap.to(ring, {
+      rotation: 360,
+      duration: 20 + i * 10,
+      repeat: -1,
+      ease: "none"
+    });
+    
+    // 光环呼吸动画
+    gsap.to(ring, {
+      opacity: 0.1,
+      scale: 1.1,
+      duration: 3 + i,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+  }
+};
 // 组件挂载时初始化
 onMounted(() => {
   initThreeJS();
@@ -569,21 +1175,14 @@ onMounted(() => {
             
             <div class="holographic-card time-flow parallax-section" data-speed="0.3">
               <div class="hologram-header">
-                <h2>离婚趋势</h2>
+                <h2>解释</h2>
               </div>
               <div class="hologram-content">
-                <LineMap data_path="/src/assets/data/divorce.csv" />
+                <p>本页面展示了中国婚姻和离婚的趋势对比。通过时间轴上的数据点，您可以观察到婚姻和离婚率的变化。</p>
+                <p>点击数据点可以查看详细信息。</p>
               </div>
             </div>
             
-            <div class="holographic-card time-flow parallax-section" data-speed="0.7">
-              <div class="hologram-header">
-                <h2>结婚趋势</h2>
-              </div>
-              <div class="hologram-content">
-                <LineMap2 data_path="/src/assets/data/marriage2.csv" />
-              </div>
-            </div>
           </div>
         </section>
         
@@ -879,9 +1478,9 @@ body {
 
 /* 3D导航系统 */
 .nav-system {
-  position: fixed;
-  top: 40px;
-  left: 50%;
+  position:fixed;
+  top: 80px;
+  left:28%;
   transform: translateX(-50%);
   width: 90%;
   max-width: 1200px;
@@ -899,7 +1498,7 @@ body {
 
 .nav-planet {
   position: absolute;
-  width: 10vw;
+  width: 15vw;
   height: 4vw;
   top: 10px;
   left: calc(50% - 40px);
@@ -1150,7 +1749,34 @@ body {
     background-position: 100% 100%;
   }
 }
+/* 3D 地图效果 */
+.map-3d-glow {
+  animation: map-glow 3s infinite alternate;
+}
 
+@keyframes map-glow {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.floating-data-point {
+  animation: float-pulse 1s infinite alternate;
+}
+
+@keyframes float-pulse {
+  0% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
 /* 数据提示框 */
 .data-tooltip {
   position: fixed;
@@ -1248,6 +1874,40 @@ body {
   
   .planet-name {
     opacity: 1;
+  }
+}
+
+/* 漩涡特效 */
+.vortex-particle {
+  animation: particle-pulse 2s infinite alternate;
+}
+
+.vortex-ring {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+@keyframes particle-pulse {
+  0% {
+    box-shadow: 0 0 5px var(--primary-color);
+  }
+  100% {
+    box-shadow: 0 0 20px var(--primary-color);
+  }
+}
+
+.matrix-light-beam {
+  animation: beam-pulse 3s infinite alternate;
+}
+
+@keyframes beam-pulse {
+  0% {
+    opacity: 0.3;
+    box-shadow: 0 0 50px var(--primary-color);
+  }
+  100% {
+    opacity: 0.7;
+    box-shadow: 0 0 100px var(--primary-color);
   }
 }
 </style>

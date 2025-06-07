@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch,onUnmounted } from 'vue';
 import * as echarts from 'echarts';
 import Papa from 'papaparse';
 
@@ -112,6 +112,7 @@ onMounted(async () => {
   echarts.registerMap('china', geoJson);
 
   myChart = echarts.init(chartRef.value);
+  window.mapChartInstance = myChart;
   const option = {
     title: {
       text: '各省15岁及以上结婚人口分布',
@@ -204,6 +205,17 @@ onMounted(async () => {
       comparisonChart.resize();
     }
   });
+
+  
+  
+  // 暴露图表实例供外部访问
+  
+});
+
+onUnmounted(() => {
+  if (window.mapChartInstance === myChart) {
+    window.mapChartInstance = null;
+  }
 });
 </script>
 
