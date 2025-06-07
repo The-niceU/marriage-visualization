@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div ref="chartRef" style="width: 100%; height: 600px;"></div>
+    <div ref="chartRef" style="width: 50vw; height: 600px;"></div>
     <div v-if="selectedAreas.length > 0" class="comparison-panel">
       <h3>已选择区域比较</h3>
       <div class="selected-areas">

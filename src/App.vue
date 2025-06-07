@@ -38,6 +38,9 @@ const changePage = (pageNum) => {
     position: fixed;
     z-index: 0;
     width: 100vw;
+    left: 0;
+    top: 0;
+    height: 100vh;
     height: 100vh;
     background: radial-gradient(circle at top right, rgba(255, 255, 224, 0.6), rgba(255, 255, 224, 0) 50%), linear-gradient(to bottom, #87CEEB, #87CEEB 30%, #FFFFFF 70%, #FFFFFF 100%);
 
@@ -211,7 +214,7 @@ const changePage = (pageNum) => {
       <div class="star"></div>
       <div class="star"></div>
       <div class="star"></div>
-    </div>
+  </div>
 
    
 
