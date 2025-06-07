@@ -13,7 +13,7 @@ const chartRef = ref(null)
 
 onMounted(async () => {
   // 1. 读取csv
-  const response = await fetch('/src/assets/data/province-marriage-divorce.csv')
+  const response = await fetch('/src/assets/data/merged.csv')
   const csvText = await response.text()
   const rows = Papa.parse(csvText, { header: true, skipEmptyLines: true }).data
 
@@ -26,18 +26,18 @@ onMounted(async () => {
       .filter(row => row.year === year)
       .map(row => [
         Number(row.income),
-        Number(row.marriage_rate) / Number(row.divorce_rate),
+        Number(row.divorce_rate),
         Number(row.population),
         row.province
       ])
   )
 
   const itemStyle = { opacity: 0.8 }
-  const sizeFunction = x => (Math.sqrt(x / 10000) + 0.1) * 10
+  const sizeFunction = x => (Math.sqrt(x / 10000) + 0.1) * 50
   const schema = [
     { name: 'Income', index: 0, text: '人均收入', unit: '元' },
-    { name: 'Ratio', index: 1, text: '结婚/离婚率比值', unit: '' },
-    { name: 'Population', index: 2, text: '人数', unit: '' },
+    { name: 'Ratio', index: 1, text: '粗离婚率', unit: '%' },
+    { name: 'Population', index: 2, text: '人数', unit: '万人' },
     { name: 'Province', index: 3, text: '省份', unit: '' }
   ]
 
@@ -67,7 +67,7 @@ onMounted(async () => {
           textStyle: { fontSize: 80 }
         },
         {
-          text: '各省结婚/离婚率比值与人均收入关系',
+          text: '各省粗离婚率与人均收入关系',
           left: 'center',
           top: 10,
           textStyle: { fontWeight: 'normal', fontSize: 20 }
@@ -103,7 +103,7 @@ onMounted(async () => {
       },
       yAxis: {
         type: 'value',
-        name: '结婚/离婚率比值',
+        name: '粗离婚率',
         nameTextStyle: { fontSize: 18 },
         splitLine: { show: false }
       },
